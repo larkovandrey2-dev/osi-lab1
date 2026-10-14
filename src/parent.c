@@ -74,8 +74,10 @@ int main(void)
     if (close_end(&pipes[2].write_end) == -1) goto cleanup;
 
     fprintf(stderr, "Enter strings (end input with EOF):\n");
+    int line_finished = 1;
     while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
         size_t length = strlen(buffer);
+        line_finished = length > 0 && buffer[length - 1] == '\n';
         if (os_write_all(pipes[0].write_end, buffer, length) == -1) {
             os_report_error("write to child1");
             goto cleanup;
@@ -83,13 +85,18 @@ int main(void)
         if (read_exact(pipes[2].read_end, buffer, length) == -1) {
             goto cleanup;
         }
-        if (fwrite(buffer, 1, length, stdout) != length || fflush(stdout) == EOF) {
+        if (fwrite(buffer, 1, length, stdout) != length ||
+            (line_finished && putchar('\n') == EOF) || fflush(stdout) == EOF) {
             perror("print result");
             goto cleanup;
         }
     }
     if (ferror(stdin)) {
         perror("read input");
+        goto cleanup;
+    }
+    if (!line_finished && (putchar('\n') == EOF || fflush(stdout) == EOF)) {
+        perror("print result");
         goto cleanup;
     }
 
