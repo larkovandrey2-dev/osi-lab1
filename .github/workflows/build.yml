@@ -11,3 +11,10 @@ jobs:
       - run: |
           cmake -S . -B build
           cmake --build build --config Debug
+      - name: Check Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: build/Debug
+        run: |
+          result=$(printf 'Hello WORLD\n' | ./parent.exe)
+          test "$result" = 'hello_world_'
