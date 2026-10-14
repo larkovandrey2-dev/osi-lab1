@@ -1,0 +1,9 @@
+/build*/
+.DS_Store
+__pycache__/
+/src/parent
+/src/child1
+/src/child2
+/report/*.aux
+/report/*.log
+/report/*.out
